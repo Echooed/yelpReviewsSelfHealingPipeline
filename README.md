@@ -40,6 +40,8 @@ The pipeline follows a linear DAG structure with six main tasks:
 load_model() → load_reviews() → diagnose_and_heal_batch() → 
 batch_analyse_sentiment() → aggregate_result() → generate_health_report()
 ```
+![Data Architecture Overview](.Resources/Yelp_Review_SelfHealing_Pipeline_Architecture.png)
+
 
 ### High-Level Flow
 
