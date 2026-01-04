@@ -84,25 +84,25 @@ batch_analyse_sentiment() → aggregate_result() → generate_health_report()
    ```bash
    pip install -r requirements.txt
    ```
+4. **Install OLLAMA**
+   - https://ollama.ai
+   - Pull a model (default: llama3.2):
+   ```bash
+   ollama pull llama3.2
+   ```
 
-4. ```bash
+5. **Install Airflow**
+ ```bash
    pip install apache-airflow
    pip install ollama
 ```
 
-#### OLLAMA Setup
-
-- Install OLLAMA: https://ollama.ai
-- Pull a model (default: llama3.2):
-   ```bash
-   ollama pull llama3.2
-   ```
-5. Ensure OLLAMA server is running:
+6. Ensure OLLAMA server is running:
    ```bash
    ollama serve
    ```
 
-6. **Start Airflow services**
+7. **Start Airflow services**
    ```bash
    airflow standalone
    ```
