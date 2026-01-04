@@ -608,6 +608,3 @@ airflow dags trigger self_healing_pipeline \
 
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## Contributors
-
-- Ilesanmi Michael
