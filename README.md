@@ -63,8 +63,6 @@ batch_analyse_sentiment() → aggregate_result() → generate_health_report()
 - Sufficient disk space for input/output files ()
 - 8GB+ RAM recommended for LLM inference
 
-
-
 ---
 
 ## Installation
@@ -281,10 +279,6 @@ Reply with ONLY a JSON object: {"sentiment": "POSITIVE", "confidence": 0.95}.
 - **Star Correlation**: Sentiment breakdown by star rating
 - **Confidence Analysis**: Average confidence by status
 
-**Output File Naming:**
-```
-sentiment_analysis_summary_2025-12-31_14-30-45_offset0.json
-```
 
 ### 7. Health Report (`generate_health_report()`)
 
@@ -494,24 +488,6 @@ airflow dags trigger self_healing_pipeline \
 }
 ```
 
-
-
-
-### Parallel Processing Strategy
-
-For large datasets, run multiple DAG instances with different offsets:
-
-```bash
-# Terminal 1: Process reviews 0-100
-airflow dags trigger self_healing_pipeline --conf '{"batch_size": 100, "offset": 0}'
-
-# Terminal 2: Process reviews 100-200
-airflow dags trigger self_healing_pipeline --conf '{"batch_size": 100, "offset": 100}'
-
-# Terminal 3: Process reviews 200-300
-airflow dags trigger self_healing_pipeline --conf '{"batch_size": 100, "offset": 200}'
-```
-
 ---
 
 ## Monitoring & Health Reports
@@ -560,25 +536,8 @@ airflow dags trigger self_healing_pipeline --conf '{"batch_size": 100, "offset":
 - System malfunction
 - **Action**: Stop pipeline, investigate immediately
 
-### Viewing Results
-
-```bash
-# View latest summary
-cat output/sentiment_analysis_summary_*.json | jq '.run_info, .totals, .rates'
-
-# Check health status
-cat output/sentiment_analysis_summary_*.json | jq '.health_status'
-
-# View sentiment distribution
-cat output/sentiment_analysis_summary_*.json | jq '.sentiment_distribution'
-
-# Check star-sentiment correlation
-cat output/sentiment_analysis_summary_*.json | jq '.star_sentiment_correlation'
-```
 
 ---
-
-
 
 
 ### DAG Parameters
@@ -648,16 +607,15 @@ cat output/sentiment_analysis_summary_*.json | jq '.star_sentiment_correlation'
 
 ## License
 
-[Your license information here]
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Contributors
 
-- Michael Akindele (Owner)
+- Ilesanmi Michael  (Owner)
 
 ## Support
 
 For issues and questions:
-- Check the troubleshooting section
 - Review Airflow logs
 - Check OLLAMA documentation
 - Contact: [your contact information]
@@ -680,7 +638,5 @@ For issues and questions:
 - Apache Airflow team
 - OLLAMA project
 - Yelp Open Dataset team
+- Airscholar for the guide
 
----
-
-*Last Updated: December 31, 2025*
