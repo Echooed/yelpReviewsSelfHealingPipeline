@@ -25,10 +25,9 @@ This Apache Airflow DAG implements an intelligent, resilient sentiment analysis 
 6. [Data Flow](#data-flow)
 7. [Self-Healing Mechanisms](#self-healing-mechanisms)
 8. [Usage](#usage)
-9. [Output Format](#output-format)
+9. [Output Format](#output)
 10. [Monitoring & Health Reports](#monitoring--health-reports)
-11. [Troubleshooting](#troubleshooting)
-12. [Performance Considerations](#performance-considerations)
+11. [Performance Considerations](#performance-considerations)
 
 ---
 
@@ -332,7 +331,7 @@ Reviews must be in JSON Lines format (one JSON object per line):
 3. **Analyzed**: After sentiment classification
 4. **Aggregated**: Compiled with statistics
 
-### Output & Output Format
+### Output
 Results are saved to `output/` with timestamped filenames:
 
 ```
