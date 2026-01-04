@@ -86,8 +86,8 @@ batch_analyse_sentiment() → aggregate_result() → generate_health_report()
    ```
 
 4. ```bash
-pip install apache-airflow
-pip install ollama
+   pip install apache-airflow
+   pip install ollama
 ```
 
 #### OLLAMA Setup
