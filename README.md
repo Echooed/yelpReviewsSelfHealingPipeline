@@ -57,85 +57,83 @@ batch_analyse_sentiment() → aggregate_result() → generate_health_report()
 
 ### System Requirements
 
-- Python 3.8+
-- Apache Airflow 2.x with SDK
+- Python 3.12+
+- Apache Airflow 3.0+
 - OLLAMA server running locally or remotely
-- Sufficient disk space for input/output files
+- Sufficient disk space for input/output files ()
+- 8GB+ RAM recommended for LLM inference
 
-### Python Dependencies
 
-```bash
-pip install apache-airflow
-pip install ollama
-```
-
-### OLLAMA Setup
-
-1. Install OLLAMA: https://ollama.ai
-2. Pull a model (default: llama3.2):
-   ```bash
-   ollama pull llama3.2
-   ```
-3. Ensure OLLAMA server is running:
-   ```bash
-   ollama serve
-   ```
 
 ---
 
 ## Installation
 
-### 1. Clone/Copy the Pipeline
 
-```bash
-# Place the pipeline file in your Airflow DAGs folder
-cp self_healing_pipeline.py $AIRFLOW_HOME/dags/
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Echooed/yelpReviewsSelfHealingPipeline.git
+   cd yelpReviewsSelfHealingPipeline
+   ```
+
+2. **Create virtual environment**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. ```bash
+pip install apache-airflow
+pip install ollama
 ```
 
-### 2. Prepare Data Directory
+#### OLLAMA Setup
 
-```bash
-# Create required directories
-mkdir -p /home/dataspiro/PycharmProject/yelpReviewsSelfHealingPipeline/input
-mkdir -p /home/dataspiro/PycharmProject/yelpReviewsSelfHealingPipeline/output
-```
+- Install OLLAMA: https://ollama.ai
+- Pull a model (default: llama3.2):
+   ```bash
+   ollama pull llama3.2
+   ```
+5. Ensure OLLAMA server is running:
+   ```bash
+   ollama serve
+   ```
 
-### 3. Download Yelp Dataset
+6. **Start Airflow services**
+   ```bash
+   airflow standalone
+   ```
 
-```bash
-# Download the Yelp academic dataset
-# Place yelp_academic_dataset_review.json in the input directory
-```
+   Or run components separately:
+   ```bash
+   # Terminal 1: Start webserver
+   airflow webserver --port 8080
 
----
+   # Terminal 2: Start scheduler
+   airflow scheduler
+   ```
 
 ## Configuration
 
 ### Environment Variables
 
-Configure the pipeline using environment variables:
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PIPELINE_BASE_DIR` | Project root | Base directory for the pipeline |
+| `PIPELINE_INPUT_FILE` | `input/yelp_academic_dataset_review.json` | Input data file |
+| `PIPELINE_OUTPUT_DIR` | `output/` | Output directory |
+| `PIPELINE_MAX_TEXT_LENGTH` | `2000` | Max characters per review |
+| `OLLAMA_HOST` | `http://localhost:11434` | Ollama server URL |
+| `OLLAMA_MODEL` | `llama3.2` | Model for sentiment analysis |
+| `OLLAMA_TIMEOUT` | `120` | Request timeout (seconds) |
+| `OLLAMA_RETRIES` | `3` | Retry attempts on failure |
 
-```bash
-# Base directory
-export PIPELINE_BASE_DIR="/home/dataspiro/PycharmProject/yelpReviewsSelfHealingPipeline"
-
-# Input file path
-export PIPELINE_INPUT_FILE="$PIPELINE_BASE_DIR/input/yelp_academic_dataset_review.json"
-
-# Output directory
-export PIPELINE_OUTPUT_DIR="$PIPELINE_BASE_DIR/output/"
-
-# Text processing
-export PIPELINE_MAX_TEXT_LENGTH=3000
-
-# OLLAMA configuration
-export OLLAMA_HOST="http://localhost:11434"
-export OLLAMA_MODEL="llama3.2"
-export OLLAMA_TIMEOUT=120
-export OLLAMA_RETRIES=5
-```
-
-### Runtime Parameters
+### DAG/Runtime Parameters
 
 Override defaults when triggering the DAG:
 
@@ -154,7 +152,7 @@ Override defaults when triggering the DAG:
 
 ### 1. Configuration Class (`Config`)
 
-Centralizes all configuration with environment variable support.
+Centralizes all configuration with support for environment variables.
 
 **Key Settings:**
 - `BASE_DIR`: Root directory for pipeline files
@@ -340,9 +338,15 @@ Reviews must be in JSON Lines format (one JSON object per line):
 3. **Analyzed**: After sentiment classification
 4. **Aggregated**: Compiled with statistics
 
-### Output Format
+### Output & Output Format
+Results are saved to `output/` with timestamped filenames:
 
-The pipeline generates a comprehensive JSON file with:
+```
+output/
+└── sentiment_analysis_summary_2025-01-03_12-20-00_Offset0.json
+```
+
+Output JSON file format example:
 
 ```json
 {
@@ -442,14 +446,14 @@ The pipeline follows a **"fail-safe, not fail-fast"** approach:
 #### 5. Length Truncation
 - **Problem**: Reviews exceeding token limits
 - **Solution**: Truncate with ellipsis marker
-- **Rationale**: Prevents model timeouts while preserving beginning of text
+- **Rationale**: Prevents model timeouts while preserving the beginning of text
 
 ### Graceful Degradation
 
 When OLLAMA fails:
 1. Retries up to 5 times with exponential backoff
 2. Falls back to NEUTRAL sentiment with 0.5 confidence
-3. Marks status as "degraded"
+3. Marks status as "degraded."
 4. Continues processing remaining reviews
 
 ---
@@ -464,6 +468,8 @@ When OLLAMA fails:
 2. Find `self_healing_pipeline` DAG
 3. Click "Trigger DAG"
 4. Use default parameters or customize
+5. Monitor execution in the Graph view
+
 
 #### Via CLI
 
@@ -473,7 +479,7 @@ airflow dags trigger self_healing_pipeline
 
 # Trigger with custom parameters
 airflow dags trigger self_healing_pipeline \
-  --conf '{"batch_size": 50, "offset": 100, "ollama_model": "llama3.2"}'
+  --conf '{"batch_size": 100, "offset": 0, "ollama_model": "llama3.2"}'
 ```
 
 ### Advanced Usage
@@ -488,23 +494,8 @@ airflow dags trigger self_healing_pipeline \
 }
 ```
 
-#### Use Different Model
 
-```python
-# Use a different OLLAMA model
-{
-    "ollama_model": "mistral"
-}
-```
 
-#### Custom Input File
-
-```python
-# Process different review file
-{
-    "input_file": "/path/to/other_reviews.json"
-}
-```
 
 ### Parallel Processing Strategy
 
@@ -550,7 +541,7 @@ airflow dags trigger self_healing_pipeline --conf '{"batch_size": 100, "offset":
 ### Health Status Interpretation
 
 #### HEALTHY ✅
-- All systems operating normally
+- All systems are operating normally
 - Data quality acceptable
 - No intervention needed
 
@@ -587,195 +578,8 @@ cat output/sentiment_analysis_summary_*.json | jq '.star_sentiment_correlation'
 
 ---
 
-## Troubleshooting
 
-### Common Issues
 
-#### 1. OLLAMA Connection Failed
-
-**Symptoms:**
-```
-Failed to connect to OLLAMA host http://localhost:11434
-```
-
-**Solutions:**
-```bash
-# Check if OLLAMA is running
-ollama list
-
-# Start OLLAMA server
-ollama serve
-
-# Verify connectivity
-curl http://localhost:11434/api/tags
-```
-
-#### 2. Model Not Found
-
-**Symptoms:**
-```
-Model not found locally. Attempting to pull...
-```
-
-**Solutions:**
-```bash
-# Manually pull model
-ollama pull llama3.2
-
-# Verify model exists
-ollama list
-
-# Check model name spelling in config
-```
-
-#### 3. Input File Not Found
-
-**Symptoms:**
-```
-FileNotFoundError: Input file not found: /path/to/file.json
-```
-
-**Solutions:**
-```bash
-# Check file path
-ls -la /home/dataspiro/PycharmProject/yelpReviewsSelfHealingPipeline/input/
-
-# Verify environment variable
-echo $PIPELINE_INPUT_FILE
-
-# Check file permissions
-chmod 644 /path/to/input/file.json
-```
-
-#### 4. High Degradation Rate
-
-**Symptoms:**
-- Many reviews marked as "degraded"
-- Low confidence scores
-
-**Solutions:**
-1. Check OLLAMA server logs
-2. Increase timeout: `export OLLAMA_TIMEOUT=240`
-3. Reduce batch size to lower load
-4. Verify model is appropriate for task
-5. Check system resources (CPU, RAM)
-
-#### 5. Memory Issues
-
-**Symptoms:**
-- Pipeline crashes during processing
-- Out of memory errors
-
-**Solutions:**
-```bash
-# Reduce batch size
-airflow dags trigger self_healing_pipeline --conf '{"batch_size": 25}'
-
-# Increase system memory
-# Restart OLLAMA with limited models
-```
-
-### Debug Mode
-
-Enable detailed logging:
-
-```python
-# In pipeline file, increase logging level
-logger.setLevel(logging.DEBUG)
-```
-
-View Airflow logs:
-```bash
-# View task logs
-airflow tasks logs self_healing_pipeline <task_id> <execution_date>
-
-# View scheduler logs
-tail -f $AIRFLOW_HOME/logs/scheduler/*.log
-```
-
----
-
-## Performance Considerations
-
-### Optimization Strategies
-
-#### 1. Batch Size Tuning
-
-| Batch Size | Processing Speed | Memory Usage | Failure Impact |
-|------------|------------------|--------------|----------------|
-| 25 | Slow | Low | Minimal |
-| 50 | Medium | Medium | Small |
-| 100 | Fast | Medium | Moderate |
-| 200+ | Fastest | High | Significant |
-
-**Recommendation**: Start with 100, adjust based on system performance
-
-#### 2. Model Selection
-
-| Model | Speed | Accuracy | Resource Usage |
-|-------|-------|----------|----------------|
-| llama3.2:1b | Very Fast | Good | Low |
-| llama3.2 | Fast | Very Good | Medium |
-| llama3:70b | Slow | Excellent | Very High |
-
-**Recommendation**: llama3.2 for balanced performance
-
-#### 3. Parallel Processing
-
-For datasets > 10,000 reviews:
-- Split into chunks of 100-500 reviews
-- Run multiple DAG instances with different offsets
-- Combine results afterward
-
-#### 4. Hardware Recommendations
-
-**Minimum:**
-- CPU: 4 cores
-- RAM: 8 GB
-- Storage: 50 GB SSD
-
-**Recommended:**
-- CPU: 8+ cores
-- RAM: 16 GB
-- Storage: 100 GB NVMe SSD
-- GPU: Optional, speeds up OLLAMA significantly
-
-#### 5. Network Optimization
-
-If using remote OLLAMA:
-- Use low-latency connection
-- Increase timeout settings
-- Consider local deployment for production
-
-### Expected Processing Times
-
-| Reviews | Batch Size | Model | Estimated Time |
-|---------|-----------|-------|----------------|
-| 100 | 100 | llama3.2 | 5-10 min |
-| 1,000 | 100 | llama3.2 | 50-100 min |
-| 10,000 | 100 | llama3.2 | 8-16 hours |
-
-*Times vary based on hardware, model size, and text length*
-
----
-
-## API Reference
-
-### Configuration Parameters
-
-```python
-class Config:
-    BASE_DIR: str              # Pipeline base directory
-    INPUT_FILE: str            # Input JSON file path
-    OUTPUT_DIR: str            # Output directory path
-    MAX_TEXT_LENGTH: int       # Maximum text length (default: 3000)
-    DEFAULT_BATCH_SIZE: int    # Default batch size (default: 100)
-    DEFAULT_OFFSET: int        # Default offset (default: 0)
-    OLLAMA_HOST: str          # OLLAMA server URL
-    OLLAMA_MODEL: str         # OLLAMA model name
-    OLLAMA_TIMEOUT: int       # Request timeout in seconds
-    OLLAMA_RETRIES: int       # Number of retry attempts
-```
 
 ### DAG Parameters
 
@@ -841,52 +645,6 @@ class Config:
 
 ---
 
-## Best Practices
-
-### 1. Data Preparation
-- Validate JSON format before processing
-- Remove corrupt lines manually if possible
-- Keep original data as backup
-
-### 2. Testing
-- Start with small batches (10-25 reviews)
-- Verify output format and quality
-- Scale up gradually
-
-### 3. Production Deployment
-- Monitor health reports regularly
-- Set up alerts for CRITICAL status
-- Implement automated restarts for OLLAMA
-- Keep logs for at least 30 days
-
-### 4. Model Management
-- Test new models on small datasets first
-- Compare results across models
-- Document model version in outputs
-- Keep models updated
-
-### 5. Error Handling
-- Review healed reviews periodically
-- Track healing statistics trends
-- Investigate degradation causes
-- Implement custom healing rules as needed
-
----
-
-## Future Enhancements
-
-### Potential Improvements
-
-1. **Multi-Model Ensemble**: Use multiple models and vote on sentiment
-2. **Aspect-Based Sentiment**: Extract sentiment for specific aspects (food, service, etc.)
-3. **Entity Recognition**: Extract business features mentioned in reviews
-4. **Fine-Tuning**: Train custom model on Yelp-specific data
-5. **Real-Time Processing**: Stream processing instead of batch
-6. **Advanced Healing**: ML-based data quality detection
-7. **Visualization Dashboard**: Real-time monitoring dashboard
-8. **API Endpoint**: REST API for on-demand analysis
-
----
 
 ## License
 
