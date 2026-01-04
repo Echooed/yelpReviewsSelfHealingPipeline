@@ -610,32 +610,4 @@ airflow dags trigger self_healing_pipeline \
 
 ## Contributors
 
-- Ilesanmi Michael  (Owner)
-
-## Support
-
-For issues and questions:
-- Review Airflow logs
-- Check OLLAMA documentation
-- Contact: [your contact information]
-
----
-
-## Changelog
-
-### Version 1.0.0 (2025-12-28)
-- Initial release
-- Self-healing functionality
-- OLLAMA integration
-- Comprehensive health reporting
-- Star-sentiment correlation analysis
-
----
-
-## Acknowledgments
-
-- Apache Airflow team
-- OLLAMA project
-- Yelp Open Dataset team
-- Airscholar for the guide
-
+- Ilesanmi Michael
